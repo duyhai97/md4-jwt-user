@@ -12,6 +12,22 @@ import java.util.Optional;
 public class UserServiceImpl implements IUserService {
     @Autowired
     IUserRepository userRepository;
+
+    @Override
+    public Iterable<User> findAll() {
+        return userRepository.findAll();
+    }
+
+    @Override
+    public void delete(Long id) {
+        userRepository.deleteById(id);
+    }
+
+    @Override
+    public Optional<User> findById(Long id) {
+        return userRepository.findById(id);
+    }
+
     @Override
     public Optional<User> findByUsername(String name) {
         return userRepository.findByUsername(name);

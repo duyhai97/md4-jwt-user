@@ -19,13 +19,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @RequestMapping("/api/auth")
@@ -41,7 +40,41 @@ public class AuthController {
     AuthenticationManager authenticationManager;
     @Autowired
     JwtProvider jwtProvider;
-    @PostMapping("/signup")
+
+
+    @GetMapping("/list")
+    public ResponseEntity<?> listUser(){
+        List<User> userList = (List<User>) userService.findAll();
+        if (userList.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        return new ResponseEntity<>(userList, HttpStatus.OK);
+    }
+
+
+//    @PutMapping("/{id}")
+//    public ResponseEntity<User> updateCustomer(@PathVariable Long id, @RequestBody User user) {
+//        Optional<User> customerOptional = userService.findById(id);
+//        if (!customerOptional.isPresent()) {
+//            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+//        }
+//        user.setId(customerOptional.get().getId());
+//        return new ResponseEntity<>(userService.save(user), HttpStatus.OK);
+//    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<User> deleteCustomer(@PathVariable Long id) {
+        Optional<User> customerOptional = userService.findById(id);
+        if (!customerOptional.isPresent()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        userService.delete(id);
+        return new ResponseEntity<>(customerOptional.get(), HttpStatus.NO_CONTENT);
+    }
+
+
+
+    @PostMapping("/create")
     public ResponseEntity<?> register(@Valid @RequestBody SignUpForm signUpForm){
         if(userService.existsByUsername(signUpForm.getUsername())){
             return new ResponseEntity<>(new ResponMessage("The username existed! Please try again!"), HttpStatus.OK);
@@ -73,7 +106,8 @@ public class AuthController {
         userService.save(user);
         return new ResponseEntity<>(new ResponMessage("Create user success!"), HttpStatus.OK);
     }
-    @PostMapping("/signin")
+    
+    @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody SignInForm signInForm){
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(signInForm.getUsername(), signInForm.getPassword()));
